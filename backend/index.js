@@ -26,3 +26,83 @@ app.use(
     saveUninitialized: true,
   })
 );
+
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Passport Serialization
+passport.serializeUser((user, done) => {
+  done(null, user);
+});
+
+passport.deserializeUser((obj, done) => {
+  done(null, obj);
+});
+
+// Configure Spotify Strategy
+passport.use(
+  new SpotifyStrategy(
+    {
+      clientID: process.env.SPOTIFY_CLIENT_ID,
+      clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+      callbackURL: process.env.SPOTIFY_CALLBACK_URL,
+    },
+    function (accessToken, refreshToken, expires_in, profile, done) {
+      // You can save the profile info and tokens to your database here
+      // For simplicity, we'll just return the profile and tokens
+      return done(null, { profile, accessToken, refreshToken });
+    }
+  )
+);
+
+// Routes
+
+// Home Route
+app.get("/", (req, res) => {
+  res.send("Mood Music Recommender Backend");
+});
+
+// Authentication Route
+app.get(
+  "/login",
+  passport.authenticate("spotify", {
+    scope: [
+      "user-read-email",
+      "playlist-modify-public",
+      "playlist-modify-private",
+    ],
+    showDialog: true,
+  })
+);
+
+// Callback Route
+app.get(
+  "/callback",
+  passport.authenticate("spotify", { failureRedirect: "/" }),
+  (req, res) => {
+    console.log(`user is ${req.user}`);
+    // Successful authentication, redirect to frontend with user data
+    res.redirect(`${process.env.FRONTEND_URL}/auth-success`);
+    // res.redirect("http://localhost:5000/auth-success");
+  }
+);
+
+// Logout Route
+app.get("/logout", (req, res) => {
+  req.logout(function (err) {
+    if (err) {
+      return next(err);
+    }
+    res.redirect(process.env.FRONTEND_URL);
+  });
+});
+
+app.get("/auth", (req, res) => {
+  res.send("Current user is: " + req.user);
+});
+
+// Start the Server
+app.listen(PORT, () => {
+  console.log(`Backend server is running on http://localhost:${PORT}`);
+});
