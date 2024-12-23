@@ -12,7 +12,7 @@ const AuthSuccess = () => {
     // Fetch user data from the backend
     const fetchUser = async () => {
       try {
-        const response = await axios.get("/user", { withCredentials: true });
+        const response = await axios.get("/user", { withCredentials: true }); //goes to localhost://5000 because we added that in our proxy in package.json
         setUser(response.data);
       } catch (error) {
         console.error("Error fetching user data:", error);
