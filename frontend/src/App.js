@@ -7,6 +7,8 @@ import AuthSuccess from "./components/Authsuccess";
 import "./App.css";
 import UserProvider from "./contexts/UserContext";
 import UserProfile from "./components/UserProfile";
+import SearchBar from "./components/SearchBar";
+import Home from "./components/Home";
 
 function App() {
   return (
@@ -14,11 +16,9 @@ function App() {
       <Router>
         <div className="App">
           <header className="App-header">
-            <h1>Mood Music Recommender</h1>
             <Auth />
-            <UserProfile />
             <Routes>
-              <Route path="/" element={<Auth />} />
+              <Route path="/" element={<Home />} />
               <Route path="/auth-success" element={<AuthSuccess />} />
             </Routes>
           </header>

@@ -21,9 +21,13 @@ app.use(
 // Session configuration
 app.use(
   session({
-    secret: process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET || "random_secrete_key",
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // Ensure cookies are secure in production
+    },
   })
 );
 
@@ -100,6 +104,16 @@ app.get("/logout", (req, res) => {
 
 app.get("/auth", (req, res) => {
   res.send("Current user is: " + req.user);
+});
+
+// Get Authenticated User Data
+app.get("/user", (req, res) => {
+  if (req.isAuthenticated()) {
+    const { profile, accessToken } = req.user;
+    res.json({ profile, accessToken });
+  } else {
+    res.status(401).json({ message: "Unauthorized" });
+  }
 });
 
 // Start the Server

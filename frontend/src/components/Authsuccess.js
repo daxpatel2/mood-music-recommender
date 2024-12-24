@@ -12,16 +12,17 @@ const AuthSuccess = () => {
     // Fetch user data from the backend
     const fetchUser = async () => {
       try {
+        console.log("reached authsuccess");
         const response = await axios.get("/user", { withCredentials: true }); //goes to localhost://5000 because we added that in our proxy in package.json
+
         setUser(response.data);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        setError(error);
+      } catch {
+        console.error(error);
       }
     };
     fetchUser();
   }, []); //empty dependency means that the components will only run once
-  // if we add stuf [user]. It will run when ever the user changes
+  // if we add stuf [user]. It will run whenever the user changes
 
   if (error) {
     return (
@@ -31,17 +32,17 @@ const AuthSuccess = () => {
       </div>
     );
   }
-
+  //it renders the loading state and not the others meaning that user in authjs never changes to user
   if (!user) {
     return <div>Loading...</div>;
+  } else {
+    return (
+      <div>
+        <h2>Welcome, {user.profile.displayName}!</h2>
+        <img src={user.profile.photos[0].value} alt="User Avatar" />
+        <p>Email: {user.profile.emails[0].value}</p>
+      </div>
+    );
   }
-
-  return (
-    <div>
-      <h2>Welcome, {user.profile.displayName}!</h2>
-      <img src={user.profile.photos[0].value} alt="User Avatar" />
-      <p>Email: {user.profile.emails[0].value}</p>
-    </div>
-  );
 };
 export default AuthSuccess;

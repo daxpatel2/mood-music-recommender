@@ -1,10 +1,11 @@
 import React from "react";
 import axios from "axios";
-import { createContext, useEffect, useState, children } from "react";
+import { createContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export const UserContext = createContext();
 
-const UserProvider = () => {
+const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -20,15 +21,15 @@ const UserProvider = () => {
         });
         setUser(response.data);
       } catch {
-        setError("An error occurred");
-        setUser(null);
-        console.error(`error occurred fetching user: ${error}`);
+        console.error(error);
       } finally {
+        console.log("reached");
         setLoading(false);
       }
     };
     fetchUser();
   }, []);
+
   return (
     <UserContext.Provider value={{ user, setUser }}>
       {!loading && children}

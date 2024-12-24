@@ -5,6 +5,7 @@ const UserProfile = () => {
   const { user } = React.useContext(UserContext);
 
   if (!user) {
+    console.log("user not found");
     return null;
   }
 
