@@ -4,6 +4,7 @@ const passport = require("passport");
 const SpotifyStrategy = require("passport-spotify").Strategy;
 const dotenv = require("dotenv");
 const cors = require("cors");
+const axios = require("axios");
 
 // Load environment variables
 dotenv.config();
@@ -116,6 +117,34 @@ app.get("/user", (req, res) => {
   }
 });
 
+//route to fetch music from spotify
+app.get("/api/recommendations", async (req, res) => {
+  const query = req.query.query;
+  const user = req.user;
+  console.log("Query:", query);
+  console.log("User:", user);
+
+  if (!query) {
+    return res.status(400).json({ message: "Query parameter is required." });
+  }
+
+  try {
+    const response = await axios.get(
+      `https://api.spotify.com/v1/search?q=${encodeURIComponent(
+        query
+      )}&type=track&limit=10`,
+      {
+        headers: {
+          Authorization: `Bearer ${req.user.accessToken}`,
+        },
+      }
+    );
+    res.json({ tracks: response.data.tracks.items });
+  } catch (err) {
+    console.error("Error fetching recommendations:", err.message);
+    res.status(500).json({ message: "Failed to fetch recommendations" });
+  }
+});
 // Start the Server
 app.listen(PORT, () => {
   console.log(`Backend server is running on http://localhost:${PORT}`);
