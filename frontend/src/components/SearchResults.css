@@ -1,0 +1,37 @@
+.results-container {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.results-container h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.results-list {
+  list-style: none;
+  padding: 0;
+}
+
+.result-item {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.result-item img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.result-item strong {
+  font-size: 1.1rem;
+}
+
+.result-item audio {
+  margin-left: auto;
+}

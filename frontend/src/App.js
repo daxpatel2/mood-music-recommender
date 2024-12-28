@@ -6,8 +6,7 @@ import Auth from "./components/Auth";
 import AuthSuccess from "./components/Authsuccess";
 import "./App.css";
 import UserProvider from "./contexts/UserContext";
-import UserProfile from "./components/UserProfile";
-import SearchBar from "./components/SearchBar";
+import SearchResults from "./components/SearchResults";
 import Home from "./components/Home";
 
 function App() {
@@ -19,7 +18,7 @@ function App() {
             <Auth />
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/auth-success" element={<AuthSuccess />} />
+              <Route path="/results" element={<SearchResults />} />
             </Routes>
           </header>
         </div>

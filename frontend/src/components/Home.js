@@ -1,9 +1,19 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { UserContext } from "../contexts/UserContext";
-import "./Home.css"; // We will define our styles in Home.css
+import { useNavigate } from "react-router-dom";
+import "./Home.css";
 
 const Home = () => {
   const { user } = useContext(UserContext);
+  const navigate = useNavigate();
+  const [query, setQuery] = useState("");
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (query.trim()) {
+      navigate(`/results?query=${encodeURIComponent(query)}`);
+    }
+  };
 
   return (
     <div className="home-container">
@@ -39,17 +49,21 @@ const Home = () => {
             type="text"
             className="search-input"
             placeholder="Search your mood..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
           />
-          <button type="submit" className="search-button">
+          <button
+            onClick={handleSearch}
+            type="submit"
+            className="search-button"
+          >
             Search
           </button>
         </form>
       </div>
 
       <footer className="home-footer">
-        <p>
-          <a href="https://...">Link 1</a> | <a href="https://...">Link 2</a>
-        </p>
+        <p>Made with love from Dax Patel</p>
       </footer>
     </div>
   );
