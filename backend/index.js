@@ -54,6 +54,7 @@ passport.use(
       callbackURL: process.env.SPOTIFY_CALLBACK_URL,
     },
     function (accessToken, refreshToken, expires_in, profile, done) {
+      console.log("Scopes:", profile?._json?.scope);
       // You can save the profile info and tokens to your database here
       // For simplicity, we'll just return the profile and tokens
       return done(null, { profile, accessToken, refreshToken });
@@ -76,6 +77,9 @@ app.get(
       "user-read-email",
       "playlist-modify-public",
       "playlist-modify-private",
+      "user-read-playback-state",
+      "user-modify-playback-state",
+      "streaming", // <-- Important for playback!
     ],
     showDialog: true,
   })
