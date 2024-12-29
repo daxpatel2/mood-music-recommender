@@ -1,12 +1,21 @@
 import React, { useContext, useState } from "react";
 import { UserContext } from "../contexts/UserContext";
 import { useNavigate } from "react-router-dom";
+import Auth from "./Auth";
 import "./Home.css";
 
 const Home = () => {
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
+
+  const handleLogin = () => {
+    window.location.href = "http://localhost:5000/login";
+  };
+
+  const handleLogout = () => {
+    window.location.href = "http://localhost:5000/logout";
+  };
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -36,7 +45,7 @@ const Home = () => {
               </span>
             </div>
           ) : (
-            <button className="sign-in-button">Sign In</button>
+            <Auth />
           )}
         </div>
       </header>

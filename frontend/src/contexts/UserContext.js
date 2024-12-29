@@ -21,9 +21,9 @@ const UserProvider = ({ children }) => {
         });
         setUser(response.data);
       } catch {
+        console.log("error occured");
         console.error(error);
       } finally {
-        console.log("reached");
         setLoading(false);
       }
     };
