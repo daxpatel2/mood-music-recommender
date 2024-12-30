@@ -1,8 +1,6 @@
 // src/App.js
-
 import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import Auth from "./components/Auth";
 import AuthSuccess from "./components/Authsuccess";
 import "./App.css";
 import UserProvider from "./contexts/UserContext";

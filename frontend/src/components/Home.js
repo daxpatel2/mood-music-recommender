@@ -2,6 +2,7 @@ import React, { useContext, useState } from "react";
 import { UserContext } from "../contexts/UserContext";
 import { useNavigate } from "react-router-dom";
 import Auth from "./Auth";
+import { analyzeUserText } from "../../../backend/sentiment.js";
 import "./Home.css";
 
 const Home = () => {
@@ -9,18 +10,11 @@ const Home = () => {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
 
-  const handleLogin = () => {
-    window.location.href = "http://localhost:5000/login";
-  };
-
-  const handleLogout = () => {
-    window.location.href = "http://localhost:5000/logout";
-  };
-
-  const handleSearch = (e) => {
+  const handleSearch = async (e) => {
     e.preventDefault();
     if (query.trim()) {
-      navigate(`/results?query=${encodeURIComponent(query)}`);
+      const recommendations = await analyzeUserText(query.trim());
+      navigate(`/results?query=${recommendations}`);
     }
   };
 
@@ -49,7 +43,6 @@ const Home = () => {
           )}
         </div>
       </header>
-
       {/* Main Content: Title and Search Bar */}
       <div className="search-section">
         <h1 className="search-title">Mood Music Recommender</h1>
@@ -57,7 +50,7 @@ const Home = () => {
           <input
             type="text"
             className="search-input"
-            placeholder="Search your mood..."
+            placeholder="Search for music or describe how you feel..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -70,7 +63,7 @@ const Home = () => {
           </button>
         </form>
       </div>
-
+      {/* footer */}
       <footer className="home-footer">
         <p>Made with love from Dax Patel</p>
       </footer>
