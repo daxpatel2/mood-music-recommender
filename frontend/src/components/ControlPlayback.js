@@ -72,9 +72,8 @@ const PlaybackControls = ({ deviceId, accessToken, trackUri }) => {
 
   return (
     <div style={{ marginTop: "20px" }}>
-      <h4>Playback Controls</h4>
-      <button onClick={handlePlay}>Play Track</button>
       <button onClick={handlePause}>Pause</button>
+      <button onClick={handlePlay}>Play Track</button>
       <button onClick={handleResume}>Resume</button>
     </div>
   );

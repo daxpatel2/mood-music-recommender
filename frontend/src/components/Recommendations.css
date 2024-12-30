@@ -1,0 +1,109 @@
+/* Recommendations.css */
+
+/* Container / Wrapper */
+.recommendations-wrapper {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.recommendations-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+/* The table container */
+.recommendations-table {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* Header Row */
+.table-header {
+  display: flex;
+  flex-direction: row;
+  font-weight: bold;
+  font-size: 0.9rem;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+/* Body Row */
+.table-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 0.95rem;
+}
+
+.table-row:hover {
+  background-color: #f7f7f7; /* highlight on hover */
+}
+
+/* Columns */
+.col-number {
+  width: 40px;
+  text-align: right;
+  padding-right: 10px;
+}
+
+.col-title {
+  flex: 2; /* take more space for track title */
+}
+
+.col-artist {
+  flex: 1.2;
+}
+
+.col-album {
+  flex: 1.2;
+}
+
+.col-duration {
+  width: 80px;
+  text-align: right;
+  padding-right: 10px;
+}
+
+/* Track info within the Title column */
+.track-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.track-name {
+  font-weight: 500;
+}
+
+/* The "Play" button in the duration column */
+.play-button {
+  margin-left: 10px;
+  background-color: #4285f4;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.play-button:hover {
+  background-color: #3070e8;
+}
+
+/* No recommendations text */
+.no-recommendations {
+  font-size: 1rem;
+  color: #777;
+  text-align: center;
+  margin-top: 20px;
+}
