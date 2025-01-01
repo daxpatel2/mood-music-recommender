@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Auth from "./Auth";
 import { analyzeUserText } from "../utils/sentiment";
 import "./Home.css";
+import FriendsFeed from "./FriendsFeed";
 
 const Home = () => {
   const { user } = useContext(UserContext);
@@ -44,6 +45,7 @@ const Home = () => {
         </div>
       </header>
       {/* Main Content: Title and Search Bar */}
+      <FriendsFeed currentUserId={user.id} />
       <div className="search-section">
         <h1 className="search-title">Mood Music Recommender</h1>
         <form className="search-bar">
