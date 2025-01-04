@@ -68,9 +68,15 @@ const UserProvider = ({ children }) => {
       }
     };
 
+    const intervalId = setInterval(() => {
+      fetchCurrentlyListening();
+    }, 180000); // Fetch every 3 minutes
+
     if (friends && friends.friends) {
       fetchCurrentlyListening(); // Call the function only if friends exist
     }
+
+    return () => clearInterval(intervalId);
   }, [friends]);
 
   return (
@@ -84,7 +90,7 @@ const UserProvider = ({ children }) => {
         setCurrentlyListening,
       }}
     >
-      ,{!loading && children}
+      {!loading && children}
     </UserContext.Provider>
   );
 };

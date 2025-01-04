@@ -4,7 +4,6 @@ import { UserContext } from "../contexts/UserContext";
 import { DeviceContext } from "../contexts/DeviceContext";
 import { useContext } from "react";
 import "./Recommendations.css";
-import FriendsFeed from "./FriendsFeed";
 
 const Recommendations = ({ data }) => {
   const { user } = useContext(UserContext);
@@ -62,8 +61,8 @@ const Recommendations = ({ data }) => {
                 {/* Playback controls if you want them inside title cell */}
                 <PlaybackControls
                   deviceId={deviceId}
-                  accessToken={user.accessToken}
-                  trackUri={track.uri}
+                  user={user}
+                  track={track}
                 />
                 <span className="track-name">{track.name}</span>
               </div>
@@ -85,7 +84,6 @@ const Recommendations = ({ data }) => {
           </div>
         ))}
       </div>
-      <FriendsFeed currentUserId={user.id} />
     </div>
   );
 };

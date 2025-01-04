@@ -53,20 +53,30 @@ const resumePlayback = async (accessToken) => {
   }
 };
 
-const PlaybackControls = ({ deviceId, accessToken, trackUri }) => {
+const PlaybackControls = ({ deviceId, user, track }) => {
   // Example track URI for demonstration
   // const trackUri = "spotify:track:4uLU6hMCjMI75M1A2tKUQC"; // Example track
 
-  const handlePlay = () => {
-    startPlayback(accessToken, deviceId, trackUri);
+  const handlePlay = async () => {
+    startPlayback(user.accessToken, deviceId, track.uri);
+    try {
+      const response = await axios.post("/update-currentTrack", {
+        track,
+        deviceId,
+        user,
+      });
+      console.log("Playback info updated in the database:", response.data);
+    } catch (err) {
+      console.error("Error updating playback info into the database:" + err);
+    }
   };
 
   const handlePause = () => {
-    pausePlayback(accessToken);
+    pausePlayback(user.accessToken);
   };
 
   const handleResume = () => {
-    resumePlayback(accessToken);
+    resumePlayback(user.accessToken);
   };
 
   return (
