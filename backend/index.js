@@ -5,13 +5,21 @@ const SpotifyStrategy = require("passport-spotify").Strategy;
 const dotenv = require("dotenv");
 const cors = require("cors");
 const axios = require("axios");
-import { storeUserInDynamoDB, getUserById, getCurrentTrack } from "./aws";
+const {
+  storeUserInMongoDB,
+  getUsers,
+  addFriend,
+  fetchFriends,
+  fetchCurrentlyListening,
+} = require("./mongo");
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+app.use(express.json()); // Add this to parse incoming JSON requests
 
 app.use(
   cors({
@@ -62,8 +70,6 @@ passport.use(
   )
 );
 
-// Routes
-
 // Home Route
 app.get("/", (req, res) => {
   res.send("Mood Music Recommender Backend");
@@ -93,22 +99,20 @@ app.get(
     try {
       const { profile, accessToken, refreshToken } = req.user;
       // 2) Prepare user data for DB
-      const userId = `spotify:${profile.id}`; // e.g., "spotify:12345"
       const displayName = profile.displayName || profile.username || "Unknown";
 
       // 3) Store user in DB
-      await storeUserInDynamoDB({
-        UserId: userId,
-        AccessToken: accessToken,
-        RefreshToken: refreshToken,
-        DisplayName: displayName,
+      await storeUserInMongoDB({
+        userId: profile.id,
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+        displayName: displayName,
       });
-      // Successful authentication, redirect to frontend with user data
-      // we can change this to simply going to homepage instead of auth success if we needed
+
       res.redirect(`${process.env.FRONTEND_URL}/auth-success`);
     } catch (err) {
-      console.error(err);
-      console.log("error occured from the app.get /callback backend route");
+      console.error("Error in callback route:", error.message);
+      res.status(500).send("An error occurred during authentication.");
     }
   }
 );
@@ -137,33 +141,10 @@ app.get("/user", (req, res) => {
   }
 });
 
-/**
- * Fetches the Spotify user's profile using an access token.
- * Returns an object with at least: { id, display_name, email, ... }
- *
- * @param {string} accessToken - A valid Spotify API access token
- * @returns {Object} - The user's Spotify profile data
- */
-export const getSpotifyProfile = async () => {
-  try {
-    const response = await axios.get("https://api.spotify.com/v1/me", {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-    return response;
-  } catch (err) {
-    console.error("Failed to fetch Spotify user profile:", err.message);
-    throw new Error("Could not fetch user profile from Spotify");
-  }
-};
-
 //route to fetch music from spotify
 app.get("/api/recommendations", async (req, res) => {
   const query = req.query.query;
   const user = req.user;
-  console.log("Query:", query);
-  console.log("User:", user);
 
   if (!query) {
     return res.status(400).json({ message: "Query parameter is required." });
@@ -188,51 +169,79 @@ app.get("/api/recommendations", async (req, res) => {
 });
 
 // route to get friends-feed
-app.get("/api/friends-feed", async (req, res) => {
-  const userId = req.query.userId;
-  if (!userId) {
-    return res.status(400).json({ error: "Missing userId" });
+app.get("/friends-feed", async (req, res) => {
+  const { profile } = req.user;
+  if (!profile) {
+    return res.status(400).json({ error: "Missing UserID" });
   }
 
   try {
-    // 1) Lookup the user
-    const userItem = await getUserById(userId);
-
-    if (!userItem) {
-      return res.status(404).json({ error: "User not found" });
+    const response = await fetchFriends(profile.id);
+    if (!response) {
+      console.error("no database response finding friends");
+      return;
     }
-
-    const friends = userItem.Friends || [];
-    if (friends.length === 0) {
-      return res.json([]); // no friends, empty array
-    }
-
-    // 2) For each friend, fetch their current track
-    const friendsData = [];
-    for (const friendId of friends) {
-      const track = await getCurrentTrack(friendId); // fetch from "UserCurrentTrack"
-      if (track) {
-        friendsData.push({
-          friendId,
-          trackId: track.TrackId,
-          trackName: track.TrackName,
-          albumName: track.AlbumName,
-          artists: track.Artists,
-          lastUpdated: track.LastUpdated,
-        });
-      } else {
-        friendsData.push({
-          friendId,
-          trackId: null,
-        });
-      }
-    }
-    res.json(friendsData);
+    res.status(200).json(response);
+    console.log("response from friends-feed route");
+    return response;
   } catch (err) {
     console.error("Error in friends-feed route:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+app.get("/find-friends", async (req, res) => {
+  const searchQuery = req.query.query;
+
+  if (!searchQuery) {
+    console.error("no search query found in find-friends");
+    return;
+  }
+  try {
+    const users = await getUsers(searchQuery);
+    res.json(users);
+  } catch (err) {
+    console.error(err);
+    console.log(
+      "error occured trying to fetch the users from database during friends search"
+    );
+  }
+});
+
+app.post("/add-friends", async (req, res) => {
+  const { friendId, userId } = req.body; // Extract friendId and userId from the request body
+
+  if (!friendId || !userId) {
+    return res.status(400).json({ error: "Missing friendId or userId" });
+  }
+
+  try {
+    const result = await addFriend(friendId, userId); // Call your database function
+    res.status(200).json({ message: "Friend added successfully", result });
+  } catch (err) {
+    console.error("Error occurred trying to add the friend:", err);
+    res
+      .status(500)
+      .json({ error: "An error occurred while adding the friend" });
+  }
+});
+
+app.post("/currently-listening", async (req, res) => {
+  console.log("currently-listening route");
+  try {
+    const { friendId } = req.body;
+    const currentTrack = await fetchCurrentlyListening(friendId);
+    console.log("current track from currently-listening route", currentTrack);
+    res.json(currentTrack);
+  } catch (err) {
+    console.error("Error fetching currently listening:", err);
+    res.status(500).json({ message: "Failed to fetch currently listening" });
+  }
+});
+
+/**
+ * START THE SERVER
+ */
 
 // Start the Server
 app.listen(PORT, () => {

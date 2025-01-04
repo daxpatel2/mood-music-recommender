@@ -10,6 +10,13 @@ const Home = () => {
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
+  const [dropdownVisible, setDropdownVisible] = useState(false);
+
+  const handleLogout = () => {
+    // Logic for logging out
+    console.log("User logged out");
+    window.location.href = "http://localhost:5000/logout";
+  };
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -23,6 +30,10 @@ const Home = () => {
     <div className="home-container">
       {/* Header */}
       <header className="home-header">
+        <div className="header-left">
+          {/* Mood Music Title */}
+          <h1 className="header-title">Mood Music</h1>
+        </div>
         <div className="header-right">
           {user ? (
             <div className="profile-info">
@@ -34,10 +45,19 @@ const Home = () => {
                 }
                 alt="User Avatar"
                 className="profile-avatar"
+                onClick={() => setDropdownVisible((prev) => !prev)} // Toggle dropdown
+                style={{ cursor: "pointer" }}
               />
               <span className="profile-name">
                 {user.profile.displayName || "User"}
               </span>
+
+              {dropdownVisible && (
+                <div className="dropdown-menu">
+                  <button onClick={handleLogout}>Logout</button>
+                  <p>{user.profile.id}</p>
+                </div>
+              )}
             </div>
           ) : (
             <Auth />
@@ -45,7 +65,9 @@ const Home = () => {
         </div>
       </header>
       {/* Main Content: Title and Search Bar */}
-      <FriendsFeed currentUserId={user.id} />
+
+      <div>{user ? <FriendsFeed currentUserId={user.profile.id} /> : " "}</div>
+
       <div className="search-section">
         <h1 className="search-title">Mood Music Recommender</h1>
         <form className="search-bar">

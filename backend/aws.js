@@ -1,42 +1,64 @@
-import AWS from "aws-sdk";
-const dynamo = new AWS.DynamoDB.DocumentClient();
+const AWS = require("aws-sdk");
+const dotenv = require("dotenv").config();
 
-export async function storeUserInDynamoDB({
-  userId,
+AWS.config.update({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: "us-east-2",
+});
+
+const dynamo = new AWS.DynamoDB.DocumentClient();
+const USERS_TABLE = "SpotifyUsers";
+const TRACKS_TABLE = "CurrentTracks"; // Replace with your actual table name
+
+async function storeUserInDynamoDB({
+  UserID,
   accessToken,
   refreshToken,
   displayName,
 }) {
-  await dynamo
-    .put({
-      TableName: "SpotifyUsers",
-      Item: {
-        UserId: userId,
-        AccessToken: accessToken,
-        RefreshToken: refreshToken,
-        DisplayName: displayName,
-      },
-    })
-    .promise();
-  console.log(`User ${userId} stored in SpotifyUsers table`);
+  try {
+    await dynamo
+      .put({
+        TableName: "SpotifyUsers",
+        Item: {
+          UserID: UserID,
+          AccessToken: accessToken,
+          RefreshToken: refreshToken,
+          DisplayName: displayName,
+        },
+      })
+      .promise();
+    console.log(`User ${UserID} stored in SpotifyUsers table`);
+  } catch (err) {
+    console.error(err);
+    console.error(`Error storing user ${UserID}:`, err);
+  }
 }
 
-export async function getUserById({ userId }) {
+async function getUserById({ UserID }) {
   const resp = await dynamo
     .get({
       TableName: USERS_TABLE,
-      Key: { UserId: userId },
+      Key: { userId: UserID },
     })
     .promise();
   return resp.Item; // might be undefined if not found
 }
 
-export async function getCurrentTrack(friendId) {
+async function getCurrentTrack(friendId) {
   const resp = await dynamo
     .get({
       TableName: TRACKS_TABLE,
-      Key: { UserId: userId },
+      Key: { UserID: UserID },
     })
     .promise();
   return resp.Item; // might be undefined if that user isn't playing anything
 }
+
+// Export the functions using CommonJS
+module.exports = {
+  storeUserInDynamoDB,
+  getUserById,
+  getCurrentTrack,
+};

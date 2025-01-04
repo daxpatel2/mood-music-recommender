@@ -4,6 +4,7 @@ import { UserContext } from "../contexts/UserContext";
 import { DeviceContext } from "../contexts/DeviceContext";
 import { useContext } from "react";
 import "./Recommendations.css";
+import FriendsFeed from "./FriendsFeed";
 
 const Recommendations = ({ data }) => {
   const { user } = useContext(UserContext);
@@ -55,7 +56,7 @@ const Recommendations = ({ data }) => {
                 borderRadius: "4px",
                 marginRight: "10px",
               }}
-            />  
+            />
             <div className="col-title">
               <div className="track-info">
                 {/* Playback controls if you want them inside title cell */}
@@ -84,6 +85,7 @@ const Recommendations = ({ data }) => {
           </div>
         ))}
       </div>
+      <FriendsFeed currentUserId={user.id} />
     </div>
   );
 };

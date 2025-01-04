@@ -1,7 +1,6 @@
 import axios from "axios";
 
 export const startPlayback = async (accessToken, deviceId, trackUri) => {
-  console.log("called playback buddy");
   try {
     await axios.put(
       `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
