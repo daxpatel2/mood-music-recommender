@@ -112,6 +112,56 @@ async function fetchCurrentlyListening(friendId) {
   }
 }
 
+async function storeCurrentlyListening({ userId, track, deviceId }) {
+  const db = await connectToMongoDB();
+  const tracksCollection = db.collection("tracks");
+  console.log("storing currently listening track for user:", userId);
+
+  try {
+    // Validate the track object
+    if (
+      !track ||
+      !track.name ||
+      !track.uri ||
+      !track.album?.name ||
+      !track.album?.images?.[0]?.url ||
+      !track.artists?.[0]?.name
+    ) {
+      throw new Error("Invalid track object");
+    }
+
+    const trackObject = {
+      trackName: track.name,
+      trackUri: track.uri,
+      albumName: track.album.name,
+      artistName: track.artists[0].name,
+      albumCover: track.album.images[0].url,
+    };
+
+    // Update or insert the track document
+    const result = await tracksCollection.updateOne(
+      { userId }, // Find user by userId
+      {
+        $set: {
+          track: trackObject,
+          deviceId, // Optionally store the deviceId if needed
+          updatedAt: new Date(), // Timestamp for tracking updates
+        },
+      },
+      { upsert: true } // Create a new document if user does not exist
+    );
+
+    console.log(`User ${userId}'s track info updated successfully in MongoDB.`);
+    return { success: true, result };
+  } catch (error) {
+    console.error(
+      `Error storing track info for user ${userId}:`,
+      error.message
+    );
+    return { success: false, error: error.message };
+  }
+}
+
 module.exports = {
   connectToMongoDB,
   storeUserInMongoDB,
@@ -120,4 +170,5 @@ module.exports = {
   addFriend,
   fetchFriends,
   fetchCurrentlyListening,
+  storeCurrentlyListening,
 };

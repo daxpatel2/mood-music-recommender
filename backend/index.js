@@ -11,6 +11,7 @@ const {
   addFriend,
   fetchFriends,
   fetchCurrentlyListening,
+  storeCurrentlyListening,
 } = require("./mongo");
 
 // Load environment variables
@@ -111,7 +112,7 @@ app.get(
 
       res.redirect(`${process.env.FRONTEND_URL}/auth-success`);
     } catch (err) {
-      console.error("Error in callback route:", error.message);
+      console.error("Error in callback route:", err.message);
       res.status(500).send("An error occurred during authentication.");
     }
   }
@@ -182,7 +183,6 @@ app.get("/friends-feed", async (req, res) => {
       return;
     }
     res.status(200).json(response);
-    console.log("response from friends-feed route");
     return response;
   } catch (err) {
     console.error("Error in friends-feed route:", err);
@@ -227,7 +227,6 @@ app.post("/add-friends", async (req, res) => {
 });
 
 app.post("/currently-listening", async (req, res) => {
-  console.log("currently-listening route");
   try {
     const { friendId } = req.body;
     const currentTrack = await fetchCurrentlyListening(friendId);
@@ -236,6 +235,28 @@ app.post("/currently-listening", async (req, res) => {
   } catch (err) {
     console.error("Error fetching currently listening:", err);
     res.status(500).json({ message: "Failed to fetch currently listening" });
+  }
+});
+
+app.post("/update-currentTrack", async (req, res) => {
+  console.log("update-currentTrack route");
+  try {
+    const { track, deviceId, user } = req.body;
+    console.log("trackUri and deviceId from update-currentTrack route", {
+      track,
+      deviceId,
+      user,
+    });
+    console.log("user.profile.id", user.profile.id);
+    const result = await storeCurrentlyListening({
+      userId: user.profile.id,
+      track,
+      deviceId,
+    });
+    res.json({ message: "Current track updated successfully" });
+  } catch (err) {
+    console.error("Error updating current track:", err);
+    res.status(500).json({ message: "Failed to update current track" });
   }
 });
 
