@@ -1,4 +1,5 @@
 const { MongoClient } = require("mongodb");
+const { v4: uuidv4 } = require("uuid");
 
 const uri =
   "mongodb+srv://daxpatel:Jitendrapatel12@cluster0.iigjp.mongodb.net/"; // Replace with your MongoDB URI
@@ -112,6 +113,25 @@ async function fetchCurrentlyListening(friendId) {
   }
 }
 
+async function roomIdGenerator(roomId) {
+  const db = await connectToMongoDB();
+  const roomsCollection = db.collection("rooms");
+
+  // Fetch the room data
+  try {
+    const room = await roomsCollection.findOne({ roomId });
+
+    if (!room) {
+      return res.status(404).json({ message: "Room not found" });
+    }
+
+    return room;
+  } catch (error) {
+    console.error("Error fetching room data:", error.message);
+    return res.status(500).json({ message: "Failed to fetch room data" });
+  }
+}
+
 async function storeCurrentlyListening({ userId, track, deviceId }) {
   const db = await connectToMongoDB();
   const tracksCollection = db.collection("tracks");
@@ -162,8 +182,94 @@ async function storeCurrentlyListening({ userId, track, deviceId }) {
   }
 }
 
+async function createListeningRoom({ room }) {
+  const db = await connectToMongoDB();
+  const roomsCollection = db.collection("rooms");
+  try {
+    const result = await roomsCollection.insertOne(room);
+    return result;
+  } catch (error) {
+    console.error("Error creating room:", error.message);
+  }
+}
+
+async function getRoomById(roomId, userId) {
+  const db = await connectToMongoDB();
+  const roomsCollection = db.collection("rooms");
+  // Validate the room exists
+  try {
+    const room = await roomsCollection.findOne({ roomId });
+    if (!room) {
+      console.error(`Room ${roomId} not found`);
+      return res.status(404).json({ message: "Room not found" });
+    }
+    // Add the user to the participants list if not already present
+    if (!room.participants.includes(userId)) {
+      await roomsCollection.updateOne(
+        { roomId },
+        { $push: { participants: userId }, $set: { updatedAt: new Date() } }
+      );
+    }
+    console.log(`User ${userId} joined room ${roomId}`);
+    return true;
+  } catch (error) {
+    console.error("Error joining room:", error.message);
+    return res.status(500).json({ message: "Failed to join room" });
+  }
+}
+
+async function createRoom({ userId }) {
+  const db = await connectToMongoDB();
+  const roomsCollection = db.collection("rooms");
+
+  // Check if a room already exists for the user
+  let room = await roomsCollection.findOne({ userId });
+
+  if (!room) {
+    // Create a new room if it doesn't exist
+    const roomId = uuidv4(); // Generate a unique room ID
+    await roomsCollection.insertOne({
+      roomId,
+      userId,
+      participants: [userId], // Add the current user as the first participant, when others join add the as well
+      createdAt: new Date(),
+    });
+
+    room = { roomId };
+    return room;
+  } else {
+    // Add the user to the room participants if not already in the room
+    await roomsCollection.updateOne(
+      { roomId: room.roomId },
+      { $addToSet: { participants: userId } }
+    );
+    console.log(`User ${userId} joined room ${room.roomId}`);
+    return room.roomId;
+  }
+}
+
+async function fetchRoomData(roomId) {
+  const db = await connectToMongoDB();
+  const roomsCollection = db.collection("rooms");
+
+  // Fetch the room data
+  try {
+    const room = await roomsCollection.findOne({
+      roomId,
+    });
+
+    if (!room) {
+      return res.status(404).json({ message: "Room not found" });
+    }
+
+    return room;
+  } catch (error) {
+    console.error("Error fetching room data:", error.message);
+    return res.status(500).json({ message: "Failed to fetch room data" });
+  }
+}
+
 module.exports = {
-  connectToMongoDB,
   storeUserInMongoDB,
   getUserById,
   getUsers,
@@ -171,4 +277,9 @@ module.exports = {
   fetchFriends,
   fetchCurrentlyListening,
   storeCurrentlyListening,
+  createListeningRoom,
+  getRoomById,
+  roomIdGenerator,
+  createRoom,
+  fetchRoomData,
 };

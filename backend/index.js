@@ -1,4 +1,5 @@
 const express = require("express");
+const http = require("http");
 const session = require("express-session");
 const passport = require("passport");
 const SpotifyStrategy = require("passport-spotify").Strategy;
@@ -7,12 +8,20 @@ const cors = require("cors");
 const axios = require("axios");
 const {
   storeUserInMongoDB,
+  getUserById,
   getUsers,
   addFriend,
   fetchFriends,
   fetchCurrentlyListening,
   storeCurrentlyListening,
+  createListeningRoom,
+  getRoomById,
+  roomIdGenerator,
+  createRoom,
+  fetchRoomData,
 } = require("./mongo");
+const createWebSocketServer = require("./websocket");
+const { Server } = require("socket.io");
 
 // Load environment variables
 dotenv.config();
@@ -63,17 +72,24 @@ passport.use(
       clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
       callbackURL: process.env.SPOTIFY_CALLBACK_URL,
     },
-    function (accessToken, refreshToken, expires_in, profile, done) {
-      // You can save the profile info and tokens to your database here
-      // For simplicity, we'll just return the profile and tokens
-      return done(null, { profile, accessToken, refreshToken });
+    async function (accessToken, refreshToken, expires_in, profile, done) {
+      try {
+        // Ensure the accessToken is valid by making a test call
+        const response = await axios.get("https://api.spotify.com/v1/me", {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        return done(null, { profile, accessToken, refreshToken });
+      } catch (err) {
+        console.error("Error during Spotify profile fetch:", err.message);
+        return done(err);
+      }
     }
   )
 );
 
 // Home Route
 app.get("/", (req, res) => {
-  res.send("Mood Music Recommender Backend");
+  res.send("Backend Server is running");
 });
 
 // Authentication Route
@@ -230,7 +246,6 @@ app.post("/currently-listening", async (req, res) => {
   try {
     const { friendId } = req.body;
     const currentTrack = await fetchCurrentlyListening(friendId);
-    console.log("current track from currently-listening route", currentTrack);
     res.json(currentTrack);
   } catch (err) {
     console.error("Error fetching currently listening:", err);
@@ -261,10 +276,168 @@ app.post("/update-currentTrack", async (req, res) => {
 });
 
 /**
+ *
+ * New endpoints for listening rooms
+ */
+app.post("/join-room", async (req, res) => {
+  try {
+    const { userId, roomId } = req.body;
+
+    const result = await getRoomById(roomId, userId);
+
+    if (!result) {
+      return res.status(404).json({ message: "Room not found" });
+    }
+    console.log(`User ${userId} joined room ${roomId}`);
+    res.status(200).json({ message: "Joined room successfully", room });
+  } catch (error) {
+    console.error("Error joining room:", error.message);
+    res.status(500).json({ message: "Failed to join room" });
+  }
+});
+
+app.get("/room/:roomId", async (req, res) => {
+  const { roomId } = req.params;
+
+  try {
+    const room = await roomIdGenerator(roomId);
+
+    if (!room) {
+      return res.status(404).json({ message: "Room not found" });
+    }
+
+    res.json({
+      roomId: room.roomId,
+      currentTrack: room.currentTrack || null,
+      updatedAt: room.updatedAt,
+    });
+  } catch (err) {
+    console.error("Error fetching room data:", err);
+    res.status(500).json({ message: "Failed to fetch room data" });
+  }
+});
+
+// Create an HTTP server
+const server = http.createServer(app);
+const io = createWebSocketServer(server); // Attach WebSocket server
+
+const activeRooms = {}; // In-memory storage for room states
+
+// Handle WebSocket connections
+io.on("connection", (socket) => {
+  console.log("A user connected:", socket.id);
+
+  // Handle joining a room
+  socket.on("joinRoom", async (roomId) => {
+    // console.log(`User ${socket.id} joined room: ${roomId}`);
+
+    // Add the user to the room
+    socket.join(roomId);
+
+    // Fetch room data and send it to the user
+    if (!activeRooms[roomId]) {
+      activeRooms[roomId] = await fetchRoomData(roomId);
+    }
+
+    const roomData = activeRooms[roomId];
+    socket.emit("roomData", roomData);
+  });
+
+  // Handle leaving a room
+  socket.on("leaveRoom", (roomId) => {
+    console.log(`User ${socket.id} left room: ${roomId}`);
+    socket.leave(roomId);
+  });
+
+  // Handle track updates in a room
+  socket.on("updateTrack", async ({ roomId, track }) => {
+    console.log(`Updating track for room ${roomId}:`, track);
+
+    // Update the room state in memory
+    if (!activeRooms[roomId]) {
+      activeRooms[roomId] = await fetchRoomData(roomId);
+    }
+
+    activeRooms[roomId].currentTrack = track;
+
+    // Update the database
+    await updateRoomTrack(roomId, track);
+
+    // Broadcast the updated track to all users in the room
+    io.to(roomId).emit("trackUpdated", track);
+    console.log("Emitted current track update:", track);
+  });
+
+  socket.on("getParticipants", async (roomId) => {
+    console.log("Fetching participants for room:", roomId);
+    if (!roomId) {
+      console.error("No room found for getParticipants");
+      return;
+    }
+
+    const room = activeRooms[roomId];
+    if (!room) {
+      console.error("No room data found for getParticipants");
+      return;
+    }
+
+    const participants = room.participants;
+    console.log("Participants in room:", participants);
+
+    // Send the participants list to all users in the room
+    io.to(roomId).emit("update-participants", { participants });
+  });
+
+  // Handle disconnection
+  socket.on("disconnect", () => {
+    console.log("A user disconnected:", socket.id);
+  });
+});
+
+app.post("/live-listen", async (req, res) => {
+  const { friendId } = req.body;
+  const userId = req.user?.profile?.id;
+
+  if (!friendId || !userId) {
+    console.log("Missing friendId or userId");
+    return res
+      .status(400)
+      .json({ success: false, message: "Missing friendId or userId" });
+  }
+
+  console.log(
+    "Creating live listen room for user:",
+    userId,
+    "and friend:",
+    friendId
+  );
+
+  try {
+    const response = await createRoom({ userId });
+    return res.json(response);
+  } catch (error) {
+    console.error("Error handling live listen request:", error.message);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to join live listen room" });
+  }
+});
+
+app.post("create-room", async (req, res) => {
+  const { userId } = req.body;
+  try {
+    const response = await createRoom({ userId });
+    res.json(response);
+  } catch (err) {
+    console.error("Error creating room:", err.message);
+    res.status(500).json({ message: "Failed to create room" });
+  }
+});
+
+/**
  * START THE SERVER
  */
-
-// Start the Server
-app.listen(PORT, () => {
+//app.listen
+server.listen(PORT, () => {
   console.log(`Backend server is running on http://localhost:${PORT}`);
 });
