@@ -7,6 +7,7 @@ import UserProvider from "./contexts/UserContext";
 import SearchResults from "./components/SearchResults";
 import Home from "./components/Home";
 import { DeviceProvider } from "./contexts/DeviceContext";
+import LiveListenRoom from "./components/LiveListenRoom";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/results" element={<SearchResults />} />
                 <Route path="/auth-success" element={<AuthSuccess />} />
+                <Route path="/room/:roomId" element={<LiveListenRoom />} />
               </Routes>
             </header>
           </div>

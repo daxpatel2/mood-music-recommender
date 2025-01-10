@@ -1,14 +1,18 @@
 import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { UserContext } from "../contexts/UserContext";
+import LiveListenModal from "./LiveListenModal"; // Import the modal
 
 function FriendsFeed({ currentUserId }) {
   const [addedFriend, setAddedFriend] = useState(0);
   const { friends } = useContext(UserContext);
   const { currentlyListening } = useContext(UserContext);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpenAdd, setIsModalOpenAdd] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedFriend, setSelectedFriend] = useState(null);
+  const [selectedFriendListening, setSelectedFriendListening] = useState(null);
 
   const handleAddFriend = async (friendId) => {
     try {
@@ -38,6 +42,18 @@ function FriendsFeed({ currentUserId }) {
     }
   };
 
+  const handleOpenModal = (friend, friendListening) => {
+    console.log("Opening modal for friend:", friend, friendListening);
+    setSelectedFriend(friend);
+    setIsModalOpen(true);
+    setSelectedFriendListening(friendListening);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedFriend(null); // Reset selected friend
+  };
+
   return (
     <div>
       {/* Display the list of friends */}
@@ -61,6 +77,7 @@ function FriendsFeed({ currentUserId }) {
                   textAlign: "center",
                   backgroundColor: "#fff",
                 }}
+                onClick={() => handleOpenModal(friend, friendListening)}
               >
                 <h4 style={{ marginBottom: "5px", fontSize: "1rem" }}>
                   {friend || "Unknown user"}
@@ -134,7 +151,7 @@ function FriendsFeed({ currentUserId }) {
       </div>
 
       {/* Modal for adding friends */}
-      {isModalOpen && (
+      {isModalOpenAdd && (
         <div
           style={{
             position: "fixed",
@@ -216,7 +233,7 @@ function FriendsFeed({ currentUserId }) {
             </div>
 
             <button
-              onClick={() => setIsModalOpen(false)}
+              onClick={() => setIsModalOpenAdd(false)}
               style={{
                 marginTop: "20px",
                 padding: "10px 20px",
@@ -232,6 +249,12 @@ function FriendsFeed({ currentUserId }) {
           </div>
         </div>
       )}
+      <LiveListenModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        friend={selectedFriend}
+        friendListening={selectedFriendListening}
+      />
     </div>
   );
 }

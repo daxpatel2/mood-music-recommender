@@ -34,6 +34,7 @@ const Home = () => {
           {/* Mood Music Title */}
           <h1 className="header-title">Mood Music</h1>
         </div>
+
         <div className="header-right">
           {user ? (
             <div className="profile-info">

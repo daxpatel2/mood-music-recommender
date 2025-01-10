@@ -1,7 +1,6 @@
 import React from "react";
 import axios from "axios";
 import { createContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 export const UserContext = createContext();
 
@@ -47,7 +46,6 @@ const UserProvider = ({ children }) => {
 
   useEffect(() => {
     const fetchCurrentlyListening = async () => {
-      console.log("Fetching currently listening tracks for friends");
       if (!friends || !friends.friends || friends.friends.length === 0) {
         console.log("No friends to fetch currently listening for");
         return;
