@@ -13,8 +13,6 @@ const Home = () => {
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
   const handleLogout = () => {
-    // Logic for logging out
-    console.log("User logged out");
     window.location.href = "http://localhost:5000/logout";
   };
 
@@ -32,7 +30,7 @@ const Home = () => {
       <header className="home-header">
         <div className="header-left">
           {/* Mood Music Title */}
-          <h1 className="header-title">Mood Music</h1>
+          <h1 className="header-title">Chime</h1>
         </div>
 
         <div className="header-right">
@@ -67,27 +65,29 @@ const Home = () => {
       </header>
       {/* Main Content: Title and Search Bar */}
 
-      <div>{user ? <FriendsFeed currentUserId={user.profile.id} /> : " "}</div>
+      <main>
+        {user ? <FriendsFeed currentUserId={user.profile.id} /> : null}
 
-      <div className="search-section">
-        <h1 className="search-title">Mood Music Recommender</h1>
-        <form className="search-bar">
-          <input
-            type="text"
-            className="search-input"
-            placeholder="Search for music or describe how you feel..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-          <button
-            onClick={handleSearch}
-            type="submit"
-            className="search-button"
-          >
-            Search
-          </button>
-        </form>
-      </div>
+        <div className="search-section">
+          <h1 className="search-title">Chime 🎵</h1>
+          <form className="search-bar">
+            <input
+              type="text"
+              className="search-input"
+              placeholder="Search for music or describe how you feel..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+            <button
+              onClick={handleSearch}
+              type="submit"
+              className="search-button"
+            >
+              Search
+            </button>
+          </form>
+        </div>
+      </main>
       {/* footer */}
       <footer className="home-footer">
         <p>Made with love from Dax Patel</p>

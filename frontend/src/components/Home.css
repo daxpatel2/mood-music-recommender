@@ -8,6 +8,14 @@
   background-color: #f5f5f5;
 }
 
+.home-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* ensures content fills at least the full window height */
+  margin: 0;
+  padding: 0;
+}
+
 .header-left {
   display: flex;
   align-items: center;
@@ -152,6 +160,7 @@
   border-top: 1px solid #eee;
   font-size: 0.9rem;
   color: #666;
+  margin-top: auto; /* ensures footer sits at the bottom of the container */
 }
 
 .home-footer a {

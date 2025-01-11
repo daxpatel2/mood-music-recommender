@@ -57,7 +57,14 @@ function FriendsFeed({ currentUserId }) {
   return (
     <div>
       {/* Display the list of friends */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "10px",
+          margin: "20px",
+        }}
+      >
         {friends && friends.friends && friends.friends.length > 0 ? (
           friends.friends.map((friend) => {
             const friendListening = currentlyListening.find(
@@ -143,7 +150,7 @@ function FriendsFeed({ currentUserId }) {
               cursor: "pointer",
               backgroundColor: "#f7f7f7",
             }}
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => setIsModalOpenAdd(true)}
           >
             +
           </button>
