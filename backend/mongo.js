@@ -26,6 +26,7 @@ async function storeUserInMongoDB({
   accessToken,
   refreshToken,
   displayName,
+  provider,
 }) {
   const db = await connectToMongoDB();
   const usersCollection = db.collection("users");
@@ -37,6 +38,7 @@ async function storeUserInMongoDB({
         accessToken,
         refreshToken,
         displayName,
+        provider,
       },
     },
     { upsert: true } // Create a new document if user does not exist
@@ -83,11 +85,11 @@ async function addFriend(friendId, userId) {
   return result;
 }
 
-async function fetchFriends(currentUserId) {
+async function fetchFriends(userId) {
   const db = await connectToMongoDB();
-  const usersCollection = db.collection("friends");
+  const friendsCollection = db.collection("friends");
 
-  const result = await usersCollection.findOne({ currentUserId });
+  const result = await friendsCollection.findOne({ userId });
   return result;
 }
 
