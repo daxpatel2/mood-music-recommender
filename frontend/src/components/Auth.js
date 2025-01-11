@@ -1,26 +1,29 @@
-import React from "react";
+import React, { useState, useContext } from "react";
 import { UserContext } from "../contexts/UserContext";
-import { useContext } from "react";
+import "./Auth.css"; // Import the CSS file
+import LoginModal from "./LoginModal";
 
 // component that handles the login and logout by taking user to the backend routes
 const Auth = () => {
   const { user } = useContext(UserContext);
+  const [modalOpen, setModalOpen] = useState(false);
 
-  const handleLogin = () => {
-    window.location.href = "http://localhost:5000/login";
+  const handleOpenModal = () => {
+    setModalOpen(true);
   };
 
-  const handleLogout = () => {
-    window.location.href = "http://localhost:5000/logout";
+  const handleCloseModal = () => {
+    setModalOpen(false);
   };
 
   return (
-    <div>
-      {!user ? (
-        <button onClick={handleLogin}>Log in with Spotify</button>
-      ) : (
-        <button onClick={handleLogout}>Log Out</button>
+    <div className="auth-container">
+      {!user && (
+        <button onClick={handleOpenModal} className="auth-login-button">
+          Log in
+        </button>
       )}
+      <LoginModal isOpen={modalOpen} onClose={handleCloseModal} />
     </div>
   );
 };

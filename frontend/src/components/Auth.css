@@ -1,0 +1,22 @@
+/* Auth.css */
+
+/* Container for the entire Auth component */
+.auth-container {
+  position: relative;
+}
+
+/* Button that triggers the login modal */
+.auth-login-button {
+  padding: 8px 16px;
+  background-color: #4285f4; /* Google's brand color or your preference */
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.auth-login-button:hover {
+  background-color: #3070e8; /* slightly darker on hover */
+}

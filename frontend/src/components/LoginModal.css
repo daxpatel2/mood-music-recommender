@@ -1,0 +1,187 @@
+/* LoginModal.css */
+
+/* Full-screen overlay, dims background */
+.login-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 9999; /* above everything else */
+}
+
+/* Main modal box */
+.login-modal {
+  background: #fff;
+  width: 90%;
+  max-width: 400px;
+  border-radius: 12px;
+  padding: 24px 32px;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+/* Optional fancy gradient “header” effect (like in the example) 
+   This creates a subtle radial gradient behind the logo. */
+.login-modal-logo {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 16px auto;
+  border-radius: 50%;
+  background: radial-gradient(#fde7e8, #fff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.login-modal-logo img {
+  width: 60px;
+  height: 60px;
+}
+
+/* Title & subtitle */
+.login-modal-title {
+  font-size: 1.5rem;
+  margin: 0;
+  color: #333;
+}
+
+.login-modal-subtitle {
+  font-size: 0.95rem;
+  color: #777;
+  margin: 8px 0 20px;
+}
+
+/* Provider buttons container */
+.login-modal-providers {
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* vertical spacing between provider buttons */
+  margin-bottom: 20px;
+}
+
+/* Each provider button */
+.login-modal-provider-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px; /* spacing between text and icon */
+  width: 100%;
+
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fff;
+  cursor: pointer;
+  color: #333;
+  transition: background-color 0.2s ease;
+  text-decoration: none;
+  text-align: center;
+}
+
+.login-modal-provider-button:hover {
+  background-color: #f2f2f2;
+}
+
+/* Spotify-specific styling */
+.spotify-button {
+  border-color: #1db954; /* Spotify green for the border */
+  color: #1db954; /* text color to match */
+}
+
+/* Google-specific styling */
+.google-button {
+  border-color: #4285f4; /* Google blue for the border */
+  color: #4285f4;
+}
+
+/* Icons inside the buttons */
+.provider-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Divider styling */
+.login-modal-divider {
+  text-align: center;
+  margin: 16px 0;
+  position: relative;
+  color: #aaa;
+}
+
+.login-modal-divider span {
+  background-color: #fff;
+  padding: 0 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.login-modal-divider::before {
+  content: "";
+  width: 100%;
+  height: 1px;
+  background-color: #ddd;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  z-index: 0;
+}
+
+/* Email/Password form */
+.login-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Each input group (label + input) */
+.login-input-group {
+  display: flex;
+  flex-direction: column;
+  text-align: left; /* left-align the label & input text */
+}
+
+.login-input-group label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: #555;
+}
+
+.login-input-group input {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.login-input-group input:focus {
+  border-color: #888;
+}
+
+/* The "Sign in" button */
+.login-submit-button {
+  margin-top: 8px;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 6px;
+  background-color: #ef4444; /* a nice red, or your preference */
+  color: #fff;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.login-submit-button:hover {
+  background-color: #dc2626;
+}
