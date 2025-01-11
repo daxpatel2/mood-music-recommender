@@ -22,7 +22,7 @@ const {
 } = require("./mongo");
 const createWebSocketServer = require("./websocket");
 const { Server } = require("socket.io");
-
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
 // Load environment variables
 dotenv.config();
 
@@ -64,6 +64,62 @@ passport.deserializeUser((obj, done) => {
   done(null, obj);
 });
 
+//configure google strategy
+passport.use(
+  new GoogleStrategy(
+    {
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: process.env.GOOGLE_CALLBACK_URL,
+    },
+    async (accessToken, refreshToken, profile, done) => {
+      try {
+        await storeUserInMongoDB({
+          userId: profile.id,
+          displayName: profile.displayName,
+          accessToken,
+          refreshToken,
+          provider: "google",
+        });
+        // If successful, pass the user object to 'done'
+        return done(null, {
+          profile,
+          accessToken,
+          refreshToken,
+          provider: "google",
+        });
+      } catch (err) {
+        console.error("Error during Google profile fetch:", err.message);
+        return done(err);
+      }
+    }
+  )
+);
+
+// 1) Start Google OAuth flow
+app.get(
+  "/auth/google",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+// 2) Callback route for Google to redirect to
+app.get(
+  "/auth/google/callback",
+  passport.authenticate("google", { failureRedirect: "/" }),
+  async (req, res) => {
+    try {
+      // GoogleStrategy passes user data to `req.user`
+      const { profile, accessToken, refreshToken, provider } = req.user;
+
+      // Then redirect to your front-end
+      res.redirect(`${process.env.FRONTEND_URL}/auth-success`);
+    } catch (err) {
+      console.error("Error in Google callback route:", err.message);
+      res.status(500).send("An error occurred during Google authentication.");
+    }
+  }
+);
+
 // Configure Spotify Strategy
 passport.use(
   new SpotifyStrategy(
@@ -72,13 +128,18 @@ passport.use(
       clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
       callbackURL: process.env.SPOTIFY_CALLBACK_URL,
     },
-    async function (accessToken, refreshToken, expires_in, profile, done) {
+    async function (accessToken, refreshToken, profile, done) {
       try {
         // Ensure the accessToken is valid by making a test call
         const response = await axios.get("https://api.spotify.com/v1/me", {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
-        return done(null, { profile, accessToken, refreshToken });
+        return done(null, {
+          profile,
+          accessToken,
+          refreshToken,
+          provider: "spotify",
+        });
       } catch (err) {
         console.error("Error during Spotify profile fetch:", err.message);
         return done(err);
@@ -114,7 +175,7 @@ app.get(
   passport.authenticate("spotify", { failureRedirect: "/" }),
   async (req, res) => {
     try {
-      const { profile, accessToken, refreshToken } = req.user;
+      const { profile, accessToken, refreshToken, provider } = req.user;
       // 2) Prepare user data for DB
       const displayName = profile.displayName || profile.username || "Unknown";
 
@@ -124,6 +185,7 @@ app.get(
         accessToken: accessToken,
         refreshToken: refreshToken,
         displayName: displayName,
+        provider: "spotify",
       });
 
       res.redirect(`${process.env.FRONTEND_URL}/auth-success`);
@@ -151,8 +213,8 @@ app.get("/auth", (req, res) => {
 // Get Authenticated User Data
 app.get("/user", (req, res) => {
   if (req.isAuthenticated()) {
-    const { profile, accessToken } = req.user;
-    res.json({ profile, accessToken });
+    const { profile, accessToken, provider } = req.user;
+    res.json({ profile, accessToken, provider });
   } else {
     res.status(401).json({ message: "Unauthorized" });
   }
@@ -193,6 +255,7 @@ app.get("/friends-feed", async (req, res) => {
   }
 
   try {
+    console.log("profile.id for game cardinal", profile.id);
     const response = await fetchFriends(profile.id);
     if (!response) {
       console.error("no database response finding friends");
