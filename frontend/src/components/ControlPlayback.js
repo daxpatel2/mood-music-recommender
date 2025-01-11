@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
 export const startPlayback = async (
@@ -30,7 +30,7 @@ export const startPlayback = async (
   }
 };
 
-const pausePlayback = async (accessToken) => {
+export const pausePlayback = async (accessToken) => {
   try {
     await axios.put(
       "https://api.spotify.com/v1/me/player/pause",
@@ -44,7 +44,7 @@ const pausePlayback = async (accessToken) => {
   }
 };
 
-const resumePlayback = async (accessToken) => {
+export const resumePlayback = async (accessToken) => {
   try {
     await axios.put(
       "https://api.spotify.com/v1/me/player/play",

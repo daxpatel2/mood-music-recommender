@@ -1,22 +1,33 @@
-import React from "react";
-import PlaybackControls, { startPlayback } from "./ControlPlayback";
+import React, { useState } from "react";
+import PlaybackControls, {
+  startPlayback,
+  pausePlayback,
+  resumePlayback,
+} from "./ControlPlayback";
 import { UserContext } from "../contexts/UserContext";
 import { DeviceContext } from "../contexts/DeviceContext";
 import { useContext } from "react";
 import "./Recommendations.css";
+import FooterPlayer from "./PlaybackBar/FooterPlayer";
 
 const Recommendations = ({ data }) => {
   const { user } = useContext(UserContext);
   const { deviceId } = useContext(DeviceContext);
+  const [showFooterPlayer, setFooterPlayer] = useState(false);
+  const [currentTrack, setCurrentTrack] = useState(null);
+  const [currentStatus, setCurrentStatus] = useState(false);
 
   if (!data || !data.tracks) {
     return <div>No recommendations found.</div>;
   }
 
-  const handlePlayTrack = (trackUri) => {
-    console.log(("handlePlayTrack called with trackUri:", trackUri));
+  const handlePlayTrack = (track) => {
+    console.log(("handlePlayTrack called with trackUri:", track.uri));
     if (!user || !deviceId) return;
-    startPlayback(user.accessToken, deviceId, trackUri);
+    setFooterPlayer(true);
+    setCurrentTrack(track);
+    setCurrentStatus(true);
+    //startPlayback(user.accessToken, deviceId, trackUri);
   };
 
   function formatDuration(ms) {
@@ -58,12 +69,6 @@ const Recommendations = ({ data }) => {
             />
             <div className="col-title">
               <div className="track-info">
-                {/* Playback controls if you want them inside title cell */}
-                <PlaybackControls
-                  deviceId={deviceId}
-                  user={user}
-                  track={track}
-                />
                 <span className="track-name">{track.name}</span>
               </div>
             </div>
@@ -73,9 +78,8 @@ const Recommendations = ({ data }) => {
             <div className="col-album">{track.album.name}</div>
             <div className="col-duration">
               {formatDuration(track.duration_ms)}
-              {/* "Play Full Track" button (optional) */}
               <button
-                onClick={() => handlePlayTrack(track.uri)}
+                onClick={() => handlePlayTrack(track)}
                 className="play-button"
               >
                 Play
@@ -84,6 +88,18 @@ const Recommendations = ({ data }) => {
           </div>
         ))}
       </div>
+
+      {showFooterPlayer && (
+        <FooterPlayer
+          currentTrack={currentTrack}
+          isPlaying={currentStatus}
+          onPlay={() =>
+            startPlayback(user.accessToken, deviceId, currentTrack.uri)
+          }
+          onPause={() => pausePlayback(user.accessToken)}
+          onResume={() => resumePlayback(user.accessToken)}
+        />
+      )}
     </div>
   );
 };
