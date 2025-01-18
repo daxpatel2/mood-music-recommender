@@ -2,13 +2,7 @@ import React from "react";
 import { FaStop, FaPlay, FaPause } from "react-icons/fa";
 // Maybe you want to show participants, messages, or whatever.
 
-function ExpandedPlayerModal({
-  onClose,
-  currentTrack,
-  isPlaying,
-  onPause,
-  onResume,
-}) {
+function ExpandedPlayerModal({ onClose, currentTrack, onPause, onResume }) {
   return (
     <div
       style={{
@@ -24,6 +18,7 @@ function ExpandedPlayerModal({
       }}
     >
       {/* Close Area */}
+
       <button
         onClick={onClose}
         style={{
@@ -51,9 +46,9 @@ function ExpandedPlayerModal({
         }}
       >
         {/* Possibly show album cover bigger */}
-        {currentTrack?.album && (
+        {currentTrack.track.albumCover && (
           <img
-            src={currentTrack.album.images[0]?.url}
+            src={currentTrack.track.albumCover}
             alt="Album Cover"
             style={{
               width: 200,
@@ -65,11 +60,9 @@ function ExpandedPlayerModal({
         )}
 
         <h2 style={{ margin: "20px 0 10px" }}>
-          {currentTrack?.name || "No track playing"}
+          {currentTrack.track.trackName || "No track playing"}
         </h2>
-        <p style={{ marginBottom: 20 }}>
-          {currentTrack.artists.map((artist) => artist.name).join(", ")}
-        </p>
+        <p style={{ marginBottom: 20 }}>{currentTrack.track.artistName}</p>
 
         {/* Playback controls in bigger form */}
         <div style={{ display: "flex", gap: 20 }}>
