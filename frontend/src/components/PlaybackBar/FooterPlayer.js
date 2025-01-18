@@ -1,9 +1,8 @@
-import React, { useState } from "react";
-import { GrResume } from "react-icons/gr";
-import { FaStop, FaPlay, FaPause } from "react-icons/fa"; // or some other icons
+import React, { useInsertionEffect, useState, useEffect } from "react";
+import { FaPlay, FaPause } from "react-icons/fa"; // or some other icons
 import ExpandedPlayerModal from "./ExpandedPlayerModal";
 
-function FooterPlayer({ currentTrack, isPlaying, onPlay, onPause, onResume }) {
+function FooterPlayer({ currentTrack, isPlaying, onPause, onResume }) {
   const [showModal, setShowModal] = useState(false);
 
   // Toggle the modal open/closed
@@ -33,7 +32,18 @@ function FooterPlayer({ currentTrack, isPlaying, onPlay, onPause, onResume }) {
         {/* Left side: track info */}
         <div style={{ display: "flex", alignItems: "center" }}>
           {/* Maybe show album art if you have it */}
-          {currentTrack?.album && (
+          {currentTrack.albumCover ? (
+            <img
+              src={currentTrack.albumCover}
+              alt="Album Cover"
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 4,
+                marginRight: 10,
+              }}
+            />
+          ) : (
             <img
               src={currentTrack.album.images[0]?.url}
               alt="Album Cover"
@@ -47,10 +57,12 @@ function FooterPlayer({ currentTrack, isPlaying, onPlay, onPause, onResume }) {
           )}
           <div>
             <div style={{ fontWeight: "bold", marginBottom: 4 }}>
-              {currentTrack?.name || "No track"}
+              {currentTrack.name || currentTrack.trackName || "No track"}
             </div>
             <div style={{ fontSize: 12 }}>
-              {currentTrack.artists.map((artist) => artist.name).join(", ")}
+              {currentTrack.artistName ||
+                currentTrack.artists.map((artist) => artist.name).join(", ") ||
+                "Unknown artist"}
             </div>
           </div>
         </div>
@@ -94,7 +106,6 @@ function FooterPlayer({ currentTrack, isPlaying, onPlay, onPause, onResume }) {
         <ExpandedPlayerModal
           onClose={handleCloseModal}
           currentTrack={currentTrack}
-          isPlaying={isPlaying}
           onPause={() => onPause()}
           onResume={() => onResume()}
         />

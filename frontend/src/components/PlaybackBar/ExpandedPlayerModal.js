@@ -46,9 +46,10 @@ function ExpandedPlayerModal({ onClose, currentTrack, onPause, onResume }) {
         }}
       >
         {/* Possibly show album cover bigger */}
-        {currentTrack.track.albumCover && (
+
+        {currentTrack.albumCover ? (
           <img
-            src={currentTrack.track.albumCover}
+            src={currentTrack.albumCover}
             alt="Album Cover"
             style={{
               width: 200,
@@ -57,12 +58,27 @@ function ExpandedPlayerModal({ onClose, currentTrack, onPause, onResume }) {
               borderRadius: 12,
             }}
           />
+        ) : (
+          <img
+            src={currentTrack.album.images[0]?.url}
+            alt="Album Cover"
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 4,
+              marginRight: 10,
+            }}
+          />
         )}
 
         <h2 style={{ margin: "20px 0 10px" }}>
-          {currentTrack.track.trackName || "No track playing"}
+          {currentTrack.trackName || currentTrack.name || "No track playing"}
         </h2>
-        <p style={{ marginBottom: 20 }}>{currentTrack.track.artistName}</p>
+        <p style={{ marginBottom: 20 }}>
+          {currentTrack.artistName ||
+            currentTrack.artists.map((artist) => artist.name).join(", ") ||
+            "Unknown artist"}
+        </p>
 
         {/* Playback controls in bigger form */}
         <div style={{ display: "flex", gap: 20 }}>
@@ -99,10 +115,7 @@ function ExpandedPlayerModal({ onClose, currentTrack, onPause, onResume }) {
 
         {/* Live-listening components*/}
 
-        <div style={{ marginTop: 30 }}>
-          <h2>Others listening with you</h2>
-          {/* ... embed your chat or participant list here ... */}
-        </div>
+        <div style={{ marginTop: 30 }}>Who is listening in? Some Data here</div>
       </div>
     </div>
   );
