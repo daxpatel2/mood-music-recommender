@@ -1,9 +1,12 @@
-import React, { useInsertionEffect, useState, useEffect } from "react";
+import React, { useState, useContext } from "react";
 import { FaPlay, FaPause } from "react-icons/fa"; // or some other icons
 import ExpandedPlayerModal from "./ExpandedPlayerModal";
+import PlaybackControls from "../ControlPlayback";
+import { DeviceContext } from "../../contexts/DeviceContext";
 
 function FooterPlayer({ currentTrack, isPlaying, onPause, onResume }) {
   const [showModal, setShowModal] = useState(false);
+  const { deviceId } = useContext(DeviceContext);
 
   // Toggle the modal open/closed
   const handleOpenModal = () => setShowModal(true);
@@ -11,6 +14,7 @@ function FooterPlayer({ currentTrack, isPlaying, onPause, onResume }) {
 
   return (
     <>
+      <PlaybackControls deviceId={deviceId} track={currentTrack} />
       {/* Mini player bar at the bottom */}
       <div
         style={{

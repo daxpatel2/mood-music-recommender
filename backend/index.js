@@ -255,7 +255,6 @@ app.get("/friends-feed", async (req, res) => {
   }
 
   try {
-    console.log("profile.id for game cardinal", profile.id);
     const response = await fetchFriends(profile.id);
     if (!response) {
       console.error("no database response finding friends");
@@ -294,6 +293,12 @@ app.post("/add-friends", async (req, res) => {
     return res.status(400).json({ error: "Missing friendId or userId" });
   }
 
+  if (friendId === userId) {
+    return res
+      .status(400)
+      .json({ error: "You cannot add yourself as a friend" });
+  }
+
   try {
     const result = await addFriend(friendId, userId); // Call your database function
     res.status(200).json({ message: "Friend added successfully", result });
@@ -317,15 +322,8 @@ app.post("/currently-listening", async (req, res) => {
 });
 
 app.post("/update-currentTrack", async (req, res) => {
-  console.log("update-currentTrack route");
   try {
     const { track, deviceId, user } = req.body;
-    console.log("trackUri and deviceId from update-currentTrack route", {
-      track,
-      deviceId,
-      user,
-    });
-    console.log("user.profile.id", user.profile.id);
     const result = await storeCurrentlyListening({
       userId: user.profile.id,
       track,
@@ -382,7 +380,12 @@ app.get("/room/:roomId", async (req, res) => {
 
 // Create an HTTP server
 const server = http.createServer(app);
-const io = createWebSocketServer(server); // Attach WebSocket server
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:3000", // Frontend URL
+    methods: ["GET", "POST"],
+  },
+});
 
 const activeRooms = {}; // In-memory storage for room states
 
@@ -438,17 +441,23 @@ io.on("connection", (socket) => {
       return;
     }
 
-    const room = activeRooms[roomId];
-    if (!room) {
-      console.error("No room data found for getParticipants");
+    let room;
+    try {
+      //fetch the room from the database
+      room = await fetchRoomData(roomId);
+      if (!room) {
+        console.error("No room found for getParticipants");
+        return;
+      }
+    } catch (err) {
+      console.error("Error fetching room data:", err);
       return;
     }
 
     const participants = room.participants;
     console.log("Participants in room:", participants);
-
-    // Send the participants list to all users in the room
-    io.to(roomId).emit("update-participants", { participants });
+    // Send the participants list to the requesting socket only
+    socket.emit("update-participants", { participants });
   });
 
   // Handle disconnection
@@ -486,13 +495,14 @@ app.post("/live-listen", async (req, res) => {
   }
 });
 
-app.post("create-room", async (req, res) => {
+app.post("/create-room", async (req, res) => {
   const { userId } = req.body;
+  const user = userId.profile.id;
   try {
-    const response = await createRoom({ userId });
+    const response = await createRoom(user);
     res.json(response);
   } catch (err) {
-    console.error("Error creating room:", err.message);
+    console.error("Error creating room from axios:", err.message);
     res.status(500).json({ message: "Failed to create room" });
   }
 });

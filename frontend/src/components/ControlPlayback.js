@@ -1,6 +1,9 @@
 import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
+import { UserContext } from "../contexts/UserContext";
+import { useContext } from "react";
+import { SocketContext } from "../contexts/SocketContext";
 
 export const startPlayback = async (
   accessToken,
@@ -61,46 +64,42 @@ export const resumePlayback = async (accessToken) => {
   }
 };
 
-const PlaybackControls = ({ deviceId, user, track }) => {
-  // Example track URI for demonstration
-  // const trackUri = "spotify:track:4uLU6hMCjMI75M1A2tKUQC"; // Example track
-  const [roomId, setRoomId] = useState(null);
-  const socketRef = useRef(null);
+const PlaybackControls = ({ deviceId, track }) => {
+  const { user } = useContext(UserContext);
+  const { socket, setRoomId, roomId } = useContext(SocketContext);
 
   /**
    * 1) On mount, create the socket and create a room in the backend.
    *    Then join that room.
    */
   useEffect(() => {
-    const socket = io("http://localhost:5000");
-    socketRef.current = socket;
-
     const createRoomAndJoin = async () => {
       try {
-        const response = await axios.post("/create-room", {
-          userId: user.id,
+        const response = await axios.post("http://localhost:5000/create-room", {
+          userId: user,
         });
         setRoomId(response.data.roomId);
-
         // Once we have the new roomId, join it
         socket.emit("joinRoom", response.data.roomId);
-      } catch (err) {
-        console.error("Error creating room:", err);
+        console.log("Joined room:", response.data.roomId);
+        socket.emit("getParticipants", response.data.roomId);
+
+        // Listen for participant updates
+        socket.on("update-participants", (data) => {
+          console.log("Received participants:", data.participants);
+          setParticipants(data.participants);
+        });
+      } catch (error) {
+        console.error("Error creating or joining room:", error);
       }
     };
 
     createRoomAndJoin();
-    // Cleanup on unmount
-    return () => {
-      socket.disconnect();
-    };
   }, [user.id]);
 
   useEffect(() => {
     // If we don't have a socket or a roomId yet, do nothing
-    if (!socketRef.current || !roomId) return;
-
-    const socket = socketRef.current;
+    if (!socket || !roomId) return;
 
     // Poll the Spotify player for the current playback position every second
     const intervalId = setInterval(async () => {
@@ -116,7 +115,7 @@ const PlaybackControls = ({ deviceId, user, track }) => {
 
           const positionMs = data.progress_ms;
           const isPlaying = data.is_playing;
-          socketRef.current.emit("updatePosition", {
+          socket.emit("updatePosition", {
             roomId,
             trackUri: track.uri,
             positionMs,
@@ -147,7 +146,7 @@ const PlaybackControls = ({ deviceId, user, track }) => {
     }
 
     // Emit to the server that we started playing
-    socketRef.current.emit("updatePosition", {
+    socket.emit("updatePosition", {
       roomId,
       trackId: track.uri,
       positionMs,
@@ -159,7 +158,7 @@ const PlaybackControls = ({ deviceId, user, track }) => {
   const handlePause = () => {
     pausePlayback(user.accessToken);
     // Let the server know we're now paused
-    socketRef.current.emit("updatePosition", {
+    socket.emit("updatePosition", {
       roomId,
       trackId: track.uri,
       // If you want to fetch real progress before pausing, you can do so
@@ -172,7 +171,7 @@ const PlaybackControls = ({ deviceId, user, track }) => {
   const handleResume = () => {
     resumePlayback(user.accessToken);
     // Let the server know we're playing
-    socketRef.current.emit("updatePosition", {
+    socket.emit("updatePosition", {
       roomId,
       trackId: track.uri,
       // You might want to fetch the real positionMs from Spotify first
@@ -182,13 +181,7 @@ const PlaybackControls = ({ deviceId, user, track }) => {
     });
   };
 
-  return (
-    <div style={{ marginTop: "20px" }}>
-      <button onClick={handlePause}>Pause</button>
-      <button onClick={handlePlay}>Play Track</button>
-      <button onClick={handleResume}>Resume</button>
-    </div>
-  );
+  return <></>;
 };
 
 export default PlaybackControls;

@@ -1,8 +1,27 @@
-import React from "react";
-import { FaStop, FaPlay, FaPause } from "react-icons/fa";
+import React, { useEffect, useState } from "react";
+import { FaPlay, FaPause } from "react-icons/fa";
+import { useContext } from "react";
+import { SocketContext } from "../../contexts/SocketContext";
 // Maybe you want to show participants, messages, or whatever.
 
 function ExpandedPlayerModal({ onClose, currentTrack, onPause, onResume }) {
+  const [participants, setParticipants] = useState([]);
+  const { socket, roomId } = useContext(SocketContext);
+
+  useEffect(() => {
+    if (!socket || !roomId) return;
+
+    // Listen for participant updates
+    socket.on("update-participants", (data) => {
+      console.log("Updated participants:", data.participants);
+      setParticipants(data.participants);
+    });
+
+    return () => {
+      socket.off("update-participants"); // Cleanup listener on unmount
+    };
+  }, [socket, roomId]);
+
   return (
     <div
       style={{
@@ -46,7 +65,6 @@ function ExpandedPlayerModal({ onClose, currentTrack, onPause, onResume }) {
         }}
       >
         {/* Possibly show album cover bigger */}
-
         {currentTrack.albumCover ? (
           <img
             src={currentTrack.albumCover}
@@ -70,7 +88,6 @@ function ExpandedPlayerModal({ onClose, currentTrack, onPause, onResume }) {
             }}
           />
         )}
-
         <h2 style={{ margin: "20px 0 10px" }}>
           {currentTrack.trackName || currentTrack.name || "No track playing"}
         </h2>
@@ -79,7 +96,6 @@ function ExpandedPlayerModal({ onClose, currentTrack, onPause, onResume }) {
             currentTrack.artists.map((artist) => artist.name).join(", ") ||
             "Unknown artist"}
         </p>
-
         {/* Playback controls in bigger form */}
         <div style={{ display: "flex", gap: 20 }}>
           <button
@@ -112,10 +128,16 @@ function ExpandedPlayerModal({ onClose, currentTrack, onPause, onResume }) {
             <FaPause size={20} />
           </button>
         </div>
-
         {/* Live-listening components*/}
-
-        <div style={{ marginTop: 30 }}>Who is listening in? Some Data here</div>
+        {participants.length > 0 ? (
+          participants.map((participant) => (
+            <div key={participant}>
+              <p>{participant}</p>
+            </div>
+          ))
+        ) : (
+          <p>No one is currently listening.</p>
+        )}
       </div>
     </div>
   );

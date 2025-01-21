@@ -34,7 +34,6 @@ const UserProvider = ({ children }) => {
           withCredentials: true,
         });
         setFriends(response.data);
-        console.log("friends = ", response.data);
       } catch (err) {
         console.error("error fetching friends in the context:" + err.message);
       }
@@ -47,7 +46,7 @@ const UserProvider = ({ children }) => {
   useEffect(() => {
     const fetchCurrentlyListening = async () => {
       if (!friends || !friends.friends || friends.friends.length === 0) {
-        console.log("No friends to fetch currently listening for");
+        console.log("No friends");
         return;
       }
       try {

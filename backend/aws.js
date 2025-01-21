@@ -29,7 +29,6 @@ async function storeUserInDynamoDB({
         },
       })
       .promise();
-    console.log(`User ${UserID} stored in SpotifyUsers table`);
   } catch (err) {
     console.error(err);
     console.error(`Error storing user ${UserID}:`, err);

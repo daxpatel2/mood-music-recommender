@@ -2,10 +2,11 @@ import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { UserContext } from "../contexts/UserContext";
 import LiveListenModal from "./LiveListenModal"; // Import the modal
+import FooterPlayer from "./PlaybackBar/FooterPlayer";
 
 function FriendsFeed({ currentUserId }) {
   const [addedFriend, setAddedFriend] = useState(0);
-  const { friends } = useContext(UserContext);
+  const { user, friends } = useContext(UserContext);
   const { currentlyListening } = useContext(UserContext);
   const [isModalOpenAdd, setIsModalOpenAdd] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -13,6 +14,7 @@ function FriendsFeed({ currentUserId }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedFriend, setSelectedFriend] = useState(null);
   const [selectedFriendListening, setSelectedFriendListening] = useState(null);
+  const [footerPlayerOpen, setFooterPlayerOpen] = useState(false);
 
   const handleAddFriend = async (friendId) => {
     try {
@@ -36,16 +38,20 @@ function FriendsFeed({ currentUserId }) {
         `find-friends?query=${encodeURIComponent(searchQuery)}`
       );
       const results = await response.json();
-      setSearchResults(results);
+      //if the user is in the results, remove them from the results because they cant add themselve
+      const filteredResults = results.filter(
+        (result) => result.userId !== currentUserId
+      );
+      setSearchResults(filteredResults);
     } catch (error) {
       console.error("Error searching users:", error);
     }
   };
 
   const handleOpenModal = (friend, friendListening) => {
-    console.log("Opening modal for friend:", friend, friendListening);
     setSelectedFriend(friend);
     setIsModalOpen(true);
+    setFooterPlayerOpen(true);
     setSelectedFriendListening(friendListening);
   };
 
@@ -156,7 +162,6 @@ function FriendsFeed({ currentUserId }) {
           </button>
         </div>
       </div>
-
       {/* Modal for adding friends */}
       {isModalOpenAdd && (
         <div
@@ -256,14 +261,24 @@ function FriendsFeed({ currentUserId }) {
           </div>
         </div>
       )}
-      <LiveListenModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        friend={selectedFriend}
-        friendListening={selectedFriendListening}
-      />
+      {footerPlayerOpen && selectedFriendListening && (
+        <FooterPlayer
+          currentTrack={selectedFriendListening.track}
+          isPlaying={true}
+          onPause={() => {
+            console.log("Only the creator can change status");
+          }}
+          onResume={() => {
+            console.log("Only the creator can change status");
+          }}
+        />
+      )}
     </div>
   );
 }
 
 export default FriendsFeed;
+
+/**
+
+*/

@@ -22,12 +22,10 @@ const Recommendations = ({ data }) => {
   }
 
   const handlePlayTrack = (track) => {
-    console.log(("handlePlayTrack called with trackUri:", track.uri));
-    if (!user || !deviceId) return;
+    startPlayback(user.accessToken, deviceId, track.uri);
     setFooterPlayer(true);
     setCurrentTrack(track);
     setCurrentStatus(true);
-    //startPlayback(user.accessToken, deviceId, trackUri);
   };
 
   function formatDuration(ms) {

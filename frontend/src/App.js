@@ -7,24 +7,24 @@ import UserProvider from "./contexts/UserContext";
 import SearchResults from "./components/SearchResults";
 import Home from "./components/Home";
 import { DeviceProvider } from "./contexts/DeviceContext";
-import LiveListenRoom from "./components/LiveListenRoom";
-
+import { SocketProvider } from "./contexts/SocketContext";
 function App() {
   return (
     <UserProvider>
       <DeviceProvider>
-        <Router>
-          <div className="App">
-            <header className="App-header">
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/results" element={<SearchResults />} />
-                <Route path="/auth-success" element={<AuthSuccess />} />
-                <Route path="/room/:roomId" element={<LiveListenRoom />} />
-              </Routes>
-            </header>
-          </div>
-        </Router>
+        <SocketProvider>
+          <Router>
+            <div className="App">
+              <header className="App-header">
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/results" element={<SearchResults />} />
+                  <Route path="/auth-success" element={<AuthSuccess />} />
+                </Routes>
+              </header>
+            </div>
+          </Router>
+        </SocketProvider>
       </DeviceProvider>
     </UserProvider>
   );
